@@ -13,10 +13,25 @@ public class ChatService {
     private final RedisTemplate redisTemplate;
 
     @Transactional
-    public void sendMessage(ChatMessageRequest chatMessageRequest) {
+    public void sendMessage(ChatMessageRequest chatMessageRequest, User user) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatMessageRequest.getRoomId()).orElseThrow(ChatRoomNotFoundException::new);
 
-        if (chatMessageRequest.getMessageType() == MessageType.TALK) {
+        //채팅 생성 및 저장
+        ChatMessage chatMessage = ChatMessage.builder()
+                .chatRoom(chatRoom)
+                .user(user)
+                .message(chatMessageRequest.getMessage())
+                .build();
 
+        chatMessageRepository.save(chatMessage);
+        String topic = channelTopic.getTopic();
+
+
+        chatMessageRequest.setNickName(user.getNickname());
+        chatMessageRequest.setUserId(user.getId());
+
+        if (chatMessageRequest.getType() == ChatMessageRequest.MessageType.TALK) {
+            redisTemplate.convertAndSend(topic, chatMessageRequest);
         }
     }
 }
