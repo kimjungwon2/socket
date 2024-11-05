@@ -7,4 +7,5 @@ public class ChatMessageRequest {
     private Long roomId;
     private String type;
     private String roomMessage;
+    private MessageType messageType;
 }
